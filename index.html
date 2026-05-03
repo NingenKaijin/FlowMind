@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlowMind — Guided Workflow Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#080F1E;--navy3:#112040;--teal:#00C4A7;--teal2:#009E87;--gold:#F5A623;--red:#E85D5D;--violet:#8B6FFF;--white:#FFFFFF;--muted:#6B80A0;--border:rgba(255,255,255,0.07);--glass:rgba(255,255,255,0.03)}
+body{font-family:'Instrument Sans',sans-serif;background:var(--navy);color:var(--white);min-height:100vh;overflow-x:hidden}
+.screen{display:none;min-height:100vh;position:relative;z-index:1}
+.screen.active{display:block;animation:fadeUp .45s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fillBar{from{width:0}}
+@keyframes stepIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+.orbs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.12}
+.orb-1{width:600px;height:600px;background:var(--teal);top:-180px;right:-120px;animation:drift 20s ease-in-out infinite}
+.orb-2{width:500px;height:500px;background:var(--violet);bottom:-120px;left:-100px;animation:drift 20s ease-in-out infinite -7s}
+.orb-3{width:350px;height:350px;background:var(--gold);top:45%;left:38%;animation:drift 20s ease-in-out infinite -14s}
+@keyframes drift{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(28px,-22px) scale(1.04)}66%{transform:translate(-18px,28px) scale(.97)}}
+.wrap{max-width:760px;margin:0 auto;padding:0 24px 90px;position:relative;z-index:1}
+.wrapW{max-width:900px;margin:0 auto;padding:0 24px 90px;position:relative;z-index:1}
+.logo{display:flex;align-items:center;gap:10px;padding:30px 0 0}
+.lmark{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:19px;color:#fff;box-shadow:0 0 22px rgba(0,196,167,.45)}
+.lname{font-family:'Syne',sans-serif;font-weight:700;font-size:22px}
+.lname span{color:var(--teal)}
+.lbadge{margin-left:auto;font-size:11px;color:var(--muted);background:var(--glass);border:1px solid var(--border);border-radius:20px;padding:5px 13px}
+.navbar{display:flex;align-items:center;justify-content:space-between;padding:30px 0 36px}
+.backbtn{background:none;border:1px solid var(--border);border-radius:9px;padding:7px 15px;color:var(--muted);font-size:13px;cursor:pointer;font-family:'Instrument Sans',sans-serif;transition:all .2s}
+.backbtn:hover{border-color:rgba(255,255,255,.25);color:var(--white)}
+.card{background:var(--glass);border:1px solid var(--border);border-radius:16px;padding:22px}
+.card.feat{background:rgba(0,196,167,.05);border-color:rgba(0,196,167,.25)}
+.tag{font-size:10px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;display:flex;align-items:center;gap:5px;margin-bottom:9px}
+.tdot{width:5px;height:5px;border-radius:50%;background:currentColor}
+.btnp{background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:12px;padding:14px 28px;color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 4px 22px rgba(0,196,167,.32);transition:transform .2s,box-shadow .2s;display:inline-flex;align-items:center;gap:8px}
+.btnp:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(0,196,167,.48)}
+.btng{background:transparent;border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:13px 24px;color:rgba(255,255,255,.55);font-family:'Instrument Sans',sans-serif;font-size:14px;cursor:pointer;transition:all .2s}
+.btng:hover{border-color:rgba(255,255,255,.35);color:var(--white)}
+.pill{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:9px 14px;min-width:88px}
+.pv{font-size:17px;font-weight:700;font-family:'Syne',sans-serif}
+.pl{font-size:10px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+.pr{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.div{height:1px;background:var(--border);margin:18px 0}
+.eyebrow{display:inline-block;margin-bottom:18px;background:rgba(0,196,167,.1);border:1px solid rgba(0,196,167,.28);border-radius:20px;padding:6px 16px;font-size:13px;font-weight:500;color:var(--teal)}
+.h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(40px,6vw,64px);line-height:1.05;letter-spacing:-1.8px;margin-bottom:20px}
+.h1 .acc{color:var(--teal)}
+.sub{font-size:18px;color:rgba(255,255,255,.5);max-width:500px;margin:0 auto 42px;line-height:1.65}
+.icard{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:20px;padding:26px;backdrop-filter:blur(20px);box-shadow:0 8px 44px rgba(0,0,0,.35)}
+#ti{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:12px;color:var(--white);font-family:'Instrument Sans',sans-serif;font-size:16px;padding:14px 16px;resize:none;outline:none;line-height:1.55;min-height:86px;transition:border-color .3s}
+#ti::placeholder{color:rgba(255,255,255,.2)}
+#ti:focus{border-color:rgba(0,196,167,.45);background:rgba(255,255,255,.07)}
+#ab{margin-top:16px;width:100%;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:12px;padding:15px;color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:16px;cursor:pointer;box-shadow:0 4px 22px rgba(0,196,167,.32);transition:transform .2s,opacity .2s}
+#ab:hover{transform:translateY(-2px)}
+#ab:disabled{opacity:.55;cursor:not-allowed;transform:none}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:13px;align-items:center}
+.clbl{font-size:11px;color:var(--muted)}
+.chip{background:var(--glass);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;color:rgba(255,255,255,.5);cursor:pointer;transition:all .2s}
+.chip:hover{background:rgba(0,196,167,.1);border-color:rgba(0,196,167,.35);color:var(--teal)}
+.lw{display:none;text-align:center;padding:40px 0}
+.lw.on{display:block}
+.ring{width:48px;height:48px;border-radius:50%;border:3px solid rgba(255,255,255,.08);border-top-color:var(--teal);animation:spin .75s linear infinite;margin:0 auto 16px}
+.ls{font-size:12px;padding:2px 0;color:rgba(255,255,255,.13);transition:color .4s}
+.ls.act{color:var(--teal)}.ls.done{color:rgba(255,255,255,.38)}
+.eb{margin-top:12px;padding:11px 14px;background:rgba(232,93,93,.1);border:1px solid rgba(232,93,93,.28);border-radius:9px;font-size:13px;color:var(--red);display:none}
+.eb.on{display:block}
+.hgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+.hnum{position:absolute;top:10px;right:14px;font-family:'Syne',sans-serif;font-weight:800;font-size:44px;color:rgba(255,255,255,.04);line-height:1;pointer-events:none}
+.trec{background:var(--glass);border:1px solid var(--border);border-radius:11px;padding:13px 17px;margin-bottom:22px;font-size:14px;color:rgba(255,255,255,.55);line-height:1.5}
+.trec strong{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;font-weight:600}
+.cbadge{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:30px;font-weight:700;font-size:16px;margin:8px 0 14px;font-family:'Syne',sans-serif}
+.cbt{height:5px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;margin-top:5px}
+.cbf{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--teal),var(--teal2));animation:fillBar 1s ease both}
+.tc{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.wb{background:rgba(139,111,255,.07);border:1px solid rgba(139,111,255,.2);border-radius:10px;padding:13px 15px;margin-top:10px}
+.wb p{font-size:13px;color:rgba(255,255,255,.75);line-height:1.65}
+.ai{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 11px;border-radius:9px;background:rgba(255,255,255,.03);border:1px solid var(--border);margin-bottom:7px;gap:10px}
+.an{font-size:12px;font-weight:600;color:var(--white)}
+.aw{font-size:11px;color:var(--muted);margin-top:2px}
+.ab2{font-size:10px;border-radius:5px;padding:2px 8px;font-weight:700;white-space:nowrap;background:rgba(232,93,93,.14);color:var(--red)}
+.ti2{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px;padding:12px 14px;cursor:pointer;margin-bottom:8px;transition:all .2s;font-size:13px}
+.ti2:hover{background:rgba(0,196,167,.08);border-color:rgba(0,196,167,.28)}
+.tp{font-size:11px;font-weight:700;color:var(--teal);background:rgba(0,196,167,.1);padding:2px 8px;border-radius:6px}
+.ctar{display:flex;gap:12px;justify-content:center;margin-top:26px;flex-wrap:wrap}
+.bdt{height:5px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden}
+.bdf{height:100%;border-radius:3px;transition:width .4s,background .4s}
+.sr{background:var(--glass);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:4px;transition:border-color .25s;animation:stepIn .3s ease both}
+.sr.open{border-color:rgba(0,196,167,.28);background:rgba(0,196,167,.04)}
+.sh{display:flex;align-items:center;gap:14px;padding:15px 18px;cursor:pointer}
+.sn{width:28px;height:28px;border-radius:50%;flex-shrink:0;background:rgba(0,196,167,.12);border:1.5px solid var(--teal);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--teal)}
+.si{flex:1}
+.snm{font-weight:600;font-size:14px}.sds{font-size:12px;color:var(--muted);margin-top:2px}
+.sm{display:flex;gap:8px;align-items:center}
+.mp{font-size:11px;padding:3px 9px;border-radius:5px;font-weight:600}
+.stk{font-size:11px;color:var(--muted)}
+.se{padding:15px 18px 18px;border-top:1px solid var(--border)}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.fd label{font-size:11px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.8px;font-weight:600}
+.fd input,.fd textarea,.fd select{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--white);font-family:'Instrument Sans',sans-serif;font-size:13px;outline:none}
+.fd select{background:var(--navy3)}.fd textarea{resize:vertical}
+.sf{display:flex;justify-content:space-between;align-items:center}
+.tn{font-size:12px;color:var(--muted)}
+.rb{background:rgba(232,93,93,.1);border:1px solid rgba(232,93,93,.2);border-radius:7px;padding:6px 12px;color:var(--red);font-size:12px;cursor:pointer}
+.con{text-align:center;color:var(--muted);font-size:20px;padding:3px 0;line-height:1}
+.addbtn{width:100%;background:transparent;border:1px dashed rgba(0,196,167,.28);border-radius:12px;padding:13px;color:var(--teal);font-size:14px;font-weight:600;cursor:pointer;margin:4px 0 26px;transition:all .2s}
+.addbtn:hover{background:rgba(0,196,167,.06)}
+.sbg{font-size:12px;padding:5px 14px;border-radius:20px;font-weight:700}
+.srun{background:rgba(245,166,35,.12);border:1px solid rgba(245,166,35,.3);color:var(--gold)}
+.sdn{background:rgba(0,196,167,.12);border:1px solid rgba(0,196,167,.3);color:var(--teal)}
+.es{display:flex;align-items:flex-start;gap:14px;padding:14px 18px;border-radius:12px;border:1px solid var(--border);background:var(--glass);margin-bottom:8px;transition:all .4s}
+.es.done{background:rgba(0,196,167,.05);border-color:rgba(0,196,167,.22)}
+.es.running{background:rgba(245,166,35,.05);border-color:rgba(245,166,35,.22)}
+.ei{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;transition:all .4s}
+.ei.pend{background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.12);color:var(--muted)}
+.ei.run{background:rgba(245,166,35,.15);border:1.5px solid var(--gold);color:var(--gold)}
+.ei.done{background:rgba(0,196,167,.15);border:1.5px solid var(--teal);color:var(--teal)}
+.ms{animation:spin .8s linear infinite;display:inline-block}
+.enm{font-weight:600;font-size:14px}.est{font-size:12px;color:var(--muted);margin-top:2px}
+.ob{background:rgba(0,196,167,.04);border:1px solid rgba(0,196,167,.18);border-radius:11px;padding:16px 18px;font-size:14px;color:rgba(255,255,255,.82);line-height:1.7;margin:14px 0}
+@media(max-width:620px){.tc,.hgrid,.fr{grid-template-columns:1fr}.ctar{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="orbs"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div></div>
+
+<div id="s1" class="screen active"><div class="wrap">
+  <div class="logo"><div class="lmark">F</div><div class="lname">Flow<span>Mind</span></div><div class="lbadge">Anthropic Growth Team · MVP</div></div>
+  <div style="text-align:center;padding:60px 0 44px">
+    <div class="eyebrow">✦ Guided Workflow Intelligence for Claude</div>
+    <h1 class="h1">Stop guessing.<br>Start <span class="acc">building.</span></h1>
+    <p class="sub">Describe your task. FlowMind uses real AI to recommend the right Claude capability with a pre-built workflow, cost estimate and explanation.</p>
+  </div>
+  <div class="icard">
+    <span style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:block">What do you want to accomplish?</span>
+    <textarea id="ti" rows="3" placeholder="e.g. Research 5 competitors, summarise their pricing and write a comparison report..."></textarea>
+    <div id="eb" class="eb"></div>
+    <div id="lw" class="lw">
+      <div class="ring"></div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px">FlowMind is analysing your intent...</div>
+      <div class="ls" id="ls1">Parsing task complexity...</div>
+      <div class="ls" id="ls2">Running Intent Classifier...</div>
+      <div class="ls" id="ls3">Routing to capability engine...</div>
+      <div class="ls" id="ls4">Matching templates and estimating tokens...</div>
+    </div>
+    <button id="ab" onclick="go_analyse()">⚡ Analyse with FlowMind</button>
+    <div class="chips">
+      <span class="clbl">Try:</span>
+      <span class="chip" onclick="fill('Research 5 competitors, summarise their pricing and write a comparison report')">Competitor research</span>
+      <span class="chip" onclick="fill('Monitor our competitor websites weekly and send me a report of pricing changes')">Competitor monitor</span>
+      <span class="chip" onclick="fill('Help me brainstorm a name for my SaaS startup')">Brainstorm names</span>
+      <span class="chip" onclick="fill('Write personalised outreach emails to 10 VCs based on their investment thesis')">VC outreach</span>
+      <span class="chip" onclick="fill('Create a structured digital marketing campaign plan for my product launch')">Marketing plan</span>
+      <span class="chip" onclick="fill('Build a personalised app recommendation engine for my e-commerce users')">Personalised app</span>
+    </div>
+  </div>
+  <div style="margin-top:72px">
+    <h2 style="font-family:'Syne',sans-serif;font-weight:700;font-size:26px;margin-bottom:6px">How FlowMind works</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:18px">Four AI-native steps from intent to execution</p>
+    <div class="hgrid">
+      <div class="card" style="position:relative;overflow:hidden"><div class="hnum">01</div><div style="font-size:26px;margin-bottom:10px">🧠</div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:6px">Intent Classifier</div><div style="font-size:13px;color:rgba(255,255,255,.45);line-height:1.6">Reads your task and classifies complexity before you write a single prompt.</div></div>
+      <div class="card" style="position:relative;overflow:hidden"><div class="hnum">02</div><div style="font-size:26px;margin-bottom:10px">🔀</div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:6px">Capability Router</div><div style="font-size:13px;color:rgba(255,255,255,.45);line-height:1.6">Maps your task to the right Claude capability with a confidence score.</div></div>
+      <div class="card" style="position:relative;overflow:hidden"><div class="hnum">03</div><div style="font-size:26px;margin-bottom:10px">📋</div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:6px">Template Engine</div><div style="font-size:13px;color:rgba(255,255,255,.45);line-height:1.6">Surfaces the 3 best-matched templates, pre-filled with your task context.</div></div>
+      <div class="card" style="position:relative;overflow:hidden"><div class="hnum">04</div><div style="font-size:26px;margin-bottom:10px">💡</div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:6px">Decision Explainer</div><div style="font-size:13px;color:rgba(255,255,255,.45);line-height:1.6">Explains every recommendation so you build understanding, not just dependency.</div></div>
+    </div>
+  </div>
+</div></div>
+
+<div id="s2" class="screen"><div class="wrap">
+  <div class="navbar">
+    <button class="backbtn" onclick="go('s1')">← Back</button>
+    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:20px">Flow<span style="color:var(--teal)">Mind</span> Analysis</div>
+    <div style="width:80px"></div>
+  </div>
+  <div class="trec"><strong>Your task</strong><span id="r_task"></span></div>
+  <div class="card feat" style="margin-bottom:14px">
+    <div class="tag" style="color:var(--teal)"><span class="tdot"></span>FlowMind Recommendation</div>
+    <div id="r_badge" class="cbadge"></div>
+    <p id="r_reason" style="font-size:14px;color:rgba(255,255,255,.68);line-height:1.65;margin-bottom:16px"></p>
+    <div style="margin-bottom:18px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:6px"><span>Classification confidence</span><span id="r_ct"></span></div>
+      <div class="cbt"><div id="r_cb" class="cbf"></div></div>
+    </div>
+    <div class="pr" id="r_pills"></div>
+  </div>
+  <div class="tc">
+    <div class="card">
+      <div class="tag" style="color:var(--violet)"><span class="tdot"></span>Decision Explainer</div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;margin-bottom:8px">Why this capability?</div>
+      <div class="wb"><p id="r_why"></p></div>
+      <div class="div"></div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:9px">Alternatives considered</div>
+      <div id="r_alts"></div>
+    </div>
+    <div class="card">
+      <div class="tag" style="color:var(--gold)"><span class="tdot"></span>Matched Templates</div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;margin-bottom:4px">Top 3 workflow templates</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px">Pre-filled with context from your task</div>
+      <div id="r_tmpls"></div>
+    </div>
+  </div>
+  <div class="ctar">
+    <button class="btnp" onclick="go('s3')">Build this Workflow →</button>
+    <button class="btng" onclick="go('s1')">Try a different task</button>
+  </div>
+</div></div>
+
+<div id="s3" class="screen"><div class="wrapW">
+  <div class="navbar">
+    <button class="backbtn" onclick="go('s2')">← Back</button>
+    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:20px">Flow<span style="color:var(--teal)">Mind</span> Builder</div>
+    <div id="b_meta" style="font-size:13px;color:var(--muted)"></div>
+  </div>
+  <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:28px;margin-bottom:6px">Build your workflow</h2>
+  <p style="font-size:15px;color:var(--muted);margin-bottom:28px">Edit steps, swap models, add or remove. Each step chains context into the next.</p>
+  <div class="card" style="margin-bottom:26px;padding:16px 20px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px">
+      <span style="color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.8px">Token Budget</span>
+      <span id="b_tkn" style="font-weight:700"></span>
+    </div>
+    <div class="bdt"><div id="b_bar" class="bdf"></div></div>
+    <div id="b_note" style="font-size:11px;color:var(--muted);margin-top:7px"></div>
+  </div>
+  <div id="sw"></div>
+  <button class="addbtn" onclick="addStep()">+ Add a step</button>
+  <button class="btnp" style="width:100%;justify-content:center;font-size:16px;padding:16px" onclick="go('s4');startExec()">Run Workflow →</button>
+</div></div>
+
+<div id="s4" class="screen"><div class="wrap">
+  <div class="navbar">
+    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:20px">Flow<span style="color:var(--teal)">Mind</span></div>
+    <div id="e_badge" class="sbg srun">⚡ Running...</div>
+  </div>
+  <h2 id="e_h" style="font-family:'Syne',sans-serif;font-weight:800;font-size:28px;margin-bottom:6px">Running workflow...</h2>
+  <p id="e_sub" style="font-size:15px;color:var(--muted);margin-bottom:32px">Each step processes in sequence, passing context to the next.</p>
+  <div id="e_steps" style="margin-bottom:30px"></div>
+  <div id="e_out" style="display:none;animation:fadeUp .6s ease">
+    <div class="card" style="margin-bottom:18px">
+      <div class="tag" style="color:var(--teal)"><span class="tdot"></span>Workflow Output</div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px;margin-bottom:12px">Generated result for your task</div>
+      <div id="e_ot" class="ob"></div>
+      <div class="pr" id="e_pills"></div>
+    </div>
+    <div class="ctar">
+      <button class="btnp" onclick="resetAll()">Analyse a new task →</button>
+      <button class="btng">Save this workflow</button>
+    </div>
+  </div>
+</div></div>
+
+<script>
+const KEY="AIzaSyAdGqHTwrnr4pQ5-6yWpA-4ew-82xjwBD8";
+const URL2=`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${KEY}`;
+let ST={task:'',result:null,steps:[]},openS=null;
+const CAP={workflow:{color:'#00C4A7',icon:'⚡',label:'Workflow'},agent:{color:'#8B6FFF',icon:'🤖',label:'Agent'},skill:{color:'#F5A623',icon:'🔧',label:'Skill'},prompt:{color:'#EEF2F7',icon:'💬',label:'Simple Prompt'}};
+const MC={'Claude Haiku':'#00C4A7','Claude Sonnet':'#F5A623','Claude Opus':'#8B6FFF'};
+
+async function callAI(task){
+  const prompt=`You are FlowMind, an AI workflow advisor. Analyse this task and respond with ONLY valid JSON, no markdown, no explanation.\n\nTask: "${task}"\n\nReturn exactly:\n{"capability":"workflow" or "agent" or "skill" or "prompt","confidence":(72-97),"capabilityReason":"(2 sentences, conversational, no dashes)","estimatedTokens":(integer),"estimatedSeconds":(integer),"qualityScore":"High" or "Very High" or "Medium","steps":[{"id":1,"name":"(name)","description":"(1 sentence)","tokens":(integer),"model":"Claude Haiku" or "Claude Sonnet" or "Claude Opus"}],"templates":[{"name":"(name)","match":(70-97)},{"name":"(name)","match":(60-88)},{"name":"(name)","match":(50-78)}],"alternatives":[{"capability":"(cap)","tradeoff":"(1 sentence)"},{"capability":"(cap)","tradeoff":"(1 sentence)"}],"sampleOutput":"(3-4 sentence realistic sample output for this specific task)"}\n\nRules: workflow=2+ chained phases. agent=autonomous/monitoring/scheduled. skill=single-format repeatable. prompt=simple single-turn. 2-5 steps. Plain conversational English.`;
+  const r=await fetch(URL2,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.4,maxOutputTokens:1024}})});
+  if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e?.error?.message||`Error ${r.status}`);}
+  const d=await r.json();
+  const raw=d?.candidates?.[0]?.content?.parts?.[0]?.text||'';
+  const clean=raw.replace(/```json|```/g,'').trim();
+  try{return JSON.parse(clean);}catch{const m=clean.match(/\{[\s\S]*\}/);if(m)return JSON.parse(m[0]);throw new Error('Could not parse response. Please try again.');}
+}
+
+function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'});}
+function fill(t){document.getElementById('ti').value=t;document.getElementById('ti').focus();}
+function showErr(m){const el=document.getElementById('eb');el.textContent=m;el.classList.add('on');}
+function clearErr(){document.getElementById('eb').classList.remove('on');}
+
+let lt=null;
+async function go_analyse(){
+  const task=document.getElementById('ti').value.trim();
+  if(!task){document.getElementById('ti').focus();return;}
+  clearErr();
+  document.getElementById('ab').style.display='none';
+  document.getElementById('lw').classList.add('on');
+  const ids=['ls1','ls2','ls3','ls4'];
+  ids.forEach(id=>{document.getElementById(id).className='ls';});
+  let step=0;
+  lt=setInterval(()=>{if(step>0)document.getElementById(ids[step-1]).className='ls done';if(step<ids.length){document.getElementById(ids[step]).className='ls act';step++;}},520);
+  try{
+    const result=await callAI(task);
+    clearInterval(lt);
+    await new Promise(r=>setTimeout(r,300));
+    document.getElementById('lw').classList.remove('on');
+    document.getElementById('ab').style.display='block';
+    ids.forEach(id=>{document.getElementById(id).className='ls';});
+    ST.task=task;ST.result=result;ST.steps=[...result.steps];openS=null;
+    renderRec();renderBuilder();go('s2');
+  }catch(e){
+    clearInterval(lt);
+    document.getElementById('lw').classList.remove('on');
+    document.getElementById('ab').style.display='block';
+    ids.forEach(id=>{document.getElementById(id).className='ls';});
+    let msg=e.message||'Something went wrong.';
+    if(msg.includes('429'))msg='Rate limit hit. Wait a moment and try again.';
+    if(msg.includes('400')||msg.includes('invalid')||msg.includes('API_KEY'))msg='API key issue. Please check and try again.';
+    showErr(msg);
+  }
+}
+
+function pill(l,v,c){return `<div class="pill"><div class="pv" style="color:${c||'var(--white)'}">${v}</div><div class="pl">${l}</div></div>`;}
+
+function renderRec(){
+  const{task,result}=ST,m=CAP[result.capability]||CAP.prompt;
+  document.getElementById('r_task').textContent=task;
+  document.getElementById('r_reason').textContent=result.capabilityReason;
+  document.getElementById('r_why').textContent=result.capabilityReason;
+  document.getElementById('r_ct').textContent=result.confidence+'%';
+  document.getElementById('r_cb').style.width=result.confidence+'%';
+  const b=document.getElementById('r_badge');
+  b.textContent=`${m.icon} ${m.label}`;
+  b.style.cssText=`background:${m.color}22;border:2px solid ${m.color};color:${m.color};display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:30px;font-weight:700;font-size:16px;margin:8px 0 14px;font-family:'Syne',sans-serif;`;
+  document.getElementById('r_pills').innerHTML=pill('Est. Tokens',result.estimatedTokens.toLocaleString(),m.color)+pill('Est. Time',`~${result.estimatedSeconds}s`,m.color)+pill('Quality',result.qualityScore,m.color);
+  document.getElementById('r_alts').innerHTML=(result.alternatives||[]).map(a=>{const am=CAP[a.capability]||CAP.prompt;return `<div class="ai"><div><div class="an">${am.icon} ${am.label}</div><div class="aw">${a.tradeoff}</div></div><span class="ab2">Not ideal</span></div>`;}).join('');
+  document.getElementById('r_tmpls').innerHTML=(result.templates||[]).map(t=>`<div class="ti2"><span style="font-weight:600;color:var(--white)">${t.name}</span><span class="tp">${t.match}%</span></div>`).join('');
+}
+
+function renderBuilder(){updateBudget();renderSteps();}
+function updateBudget(){
+  const total=ST.steps.reduce((s,st)=>s+(st.tokens||0),0),pct=Math.min((total/8000)*100,100),over=total>6000;
+  document.getElementById('b_tkn').textContent=`${total.toLocaleString()} / 8,000`;
+  document.getElementById('b_tkn').style.color=over?'var(--red)':'var(--teal)';
+  document.getElementById('b_bar').style.width=pct+'%';
+  document.getElementById('b_bar').style.background=over?'linear-gradient(90deg,var(--gold),var(--red))':'linear-gradient(90deg,var(--teal),var(--teal2))';
+  document.getElementById('b_note').textContent=over?'Approaching limit. Consider Claude Haiku for simpler steps.':'Within recommended range for optimal performance.';
+  document.getElementById('b_meta').textContent=`${ST.steps.length} steps · ${total.toLocaleString()} tokens`;
+}
+function renderSteps(){
+  const w=document.getElementById('sw');w.innerHTML='';
+  ST.steps.forEach((st,i)=>{
+    const isO=openS===st.id,mc=MC[st.model]||'var(--teal)',isL=i===ST.steps.length-1;
+    const d=document.createElement('div');
+    d.innerHTML=`<div class="sr${isO?' open':''}" id="sr_${st.id}"><div class="sh" onclick="toggleS(${st.id})"><div class="sn">${i+1}</div><div class="si"><div class="snm">${st.name}</div><div class="sds">${st.description}</div></div><div class="sm"><span class="mp" style="background:${mc}18;color:${mc}">${st.model}</span><span class="stk">${(st.tokens||0).toLocaleString()} tkn</span><span style="color:var(--muted);font-size:11px;margin-left:4px">${isO?'▲':'▼'}</span></div></div>${isO?`<div class="se"><div class="fr"><div class="fd"><label>Step Name</label><input value="${st.name}" oninput="updS(${st.id},'name',this.value)"></div><div class="fd"><label>Model</label><select onchange="updS(${st.id},'model',this.value)"><option${st.model==='Claude Haiku'?' selected':''}>Claude Haiku</option><option${st.model==='Claude Sonnet'?' selected':''}>Claude Sonnet</option><option${st.model==='Claude Opus'?' selected':''}>Claude Opus</option></select></div></div><div class="fd" style="margin-bottom:12px"><label>Description</label><textarea rows="2" oninput="updS(${st.id},'description',this.value)">${st.description}</textarea></div><div class="sf"><span class="tn">Est. tokens: <strong style="color:var(--teal)">${(st.tokens||0).toLocaleString()}</strong></span><button class="rb" onclick="remS(${st.id})"${ST.steps.length<=1?' disabled':''}>Remove step</button></div></div>`:''}</div>${!isL?'<div class="con">↓</div>':''}`;
+    w.appendChild(d);
+  });
+}
+function toggleS(id){openS=openS===id?null:id;renderSteps();}
+function updS(id,f,v){ST.steps=ST.steps.map(s=>s.id===id?{...s,[f]:v}:s);updateBudget();}
+function addStep(){const max=ST.steps.reduce((m,s)=>Math.max(m,s.id),0);ST.steps.push({id:max+1,name:'New Step',description:'Describe what this step does',tokens:700,model:'Claude Haiku'});openS=max+1;renderBuilder();}
+function remS(id){if(ST.steps.length<=1)return;ST.steps=ST.steps.filter(s=>s.id!==id);if(openS===id)openS=null;renderBuilder();}
+
+function startExec(){
+  const steps=ST.steps;
+  document.getElementById('e_out').style.display='none';
+  document.getElementById('e_h').textContent='Running workflow...';
+  document.getElementById('e_sub').textContent='Each step processes in sequence, passing context to the next.';
+  document.getElementById('e_badge').className='sbg srun';
+  document.getElementById('e_badge').textContent='⚡ Running...';
+  document.getElementById('e_steps').innerHTML=steps.map((st,i)=>`<div id="es_${st.id}" class="es"><div id="ei_${st.id}" class="ei pend">${i+1}</div><div style="flex:1"><div class="enm">${st.name}</div><div id="et_${st.id}" class="est">Waiting · ${(st.tokens||0).toLocaleString()} tokens</div></div></div>`).join('');
+  let idx=0;
+  function tick(){
+    if(idx>=steps.length){finishExec();return;}
+    const st=steps[idx];
+    if(idx>0){const p=steps[idx-1];document.getElementById(`es_${p.id}`).className='es done';document.getElementById(`ei_${p.id}`).className='ei done';document.getElementById(`ei_${p.id}`).textContent='✓';document.getElementById(`et_${p.id}`).textContent='Completed';}
+    document.getElementById(`es_${st.id}`).className='es running';
+    document.getElementById(`ei_${st.id}`).className='ei run';
+    document.getElementById(`ei_${st.id}`).innerHTML='<span class="ms">⟳</span>';
+    document.getElementById(`et_${st.id}`).textContent='Processing...';
+    idx++;setTimeout(tick,1100+Math.random()*750);
+  }
+  tick();
+}
+function finishExec(){
+  const steps=ST.steps,last=steps[steps.length-1];
+  document.getElementById(`es_${last.id}`).className='es done';
+  document.getElementById(`ei_${last.id}`).className='ei done';
+  document.getElementById(`ei_${last.id}`).textContent='✓';
+  document.getElementById(`et_${last.id}`).textContent='Completed';
+  document.getElementById('e_h').textContent='Workflow complete';
+  document.getElementById('e_sub').textContent='All steps finished. Here is your output.';
+  document.getElementById('e_badge').className='sbg sdn';
+  document.getElementById('e_badge').textContent='✓ Complete';
+  const m=CAP[ST.result.capability]||CAP.prompt,total=steps.reduce((s,st)=>s+(st.tokens||0),0);
+  document.getElementById('e_ot').textContent=ST.result.sampleOutput;
+  document.getElementById('e_pills').innerHTML=pill('Total Tokens',total.toLocaleString(),m.color)+pill('Steps Completed',steps.length,m.color)+pill('Quality',ST.result.qualityScore,m.color);
+  document.getElementById('e_out').style.display='block';
+}
+function resetAll(){ST={task:'',result:null,steps:[]};openS=null;document.getElementById('ti').value='';clearErr();go('s1');}
+document.getElementById('ti').addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey))go_analyse();});
+</script>
+</body>
+</html>
